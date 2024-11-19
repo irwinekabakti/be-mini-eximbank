@@ -143,34 +143,6 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
 
-    /*
-    @GetMapping("/profile")
-    public ResponseEntity<?> getUserProfile(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "User not authenticated"));
-        }
-
-        User user = userService.getUserByUsername(userDetails.getUsername());
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        UserProfileResponse profileResponse = UserProfileResponse.fromUser(user);
-        return ResponseEntity.ok(profileResponse);
-    }
-
-    @GetMapping("/profile/{username}")
-    public ResponseEntity<?> getUserProfileByUsername(@PathVariable String username) {
-        User user = userService.getUserByUsername(username);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        UserProfileResponse profileResponse = UserProfileResponse.fromUser(user);
-        return ResponseEntity.ok(profileResponse);
-    }
-    */
-
     @GetMapping("/profile")
     public ResponseEntity<?> getUserProfile(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) {
@@ -222,5 +194,31 @@ public class UserController {
 
         UserProfileResponse profileResponse = UserProfileResponse.fromUser(user);
         return ResponseEntity.ok(profileResponse);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+        try {
+            userService.initiatePasswordReset(email);
+            return ResponseEntity.ok()
+                    .body("Password reset email sent successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(
+            @RequestParam String token,
+            @RequestParam String newPassword) {
+        try {
+            userService.resetPassword(token, newPassword);
+            return ResponseEntity.ok()
+                    .body("Password reset successful.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(e.getMessage());
+        }
     }
 }
